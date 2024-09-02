@@ -1,5 +1,5 @@
-
-
+import UserModel from "../model/User.model.js";
+import bcrypt from "bcrypt";
 /** POST: http://localhost:8080/api/register 
  * @param : {
   "username" : "example123",
@@ -13,7 +13,61 @@
 }
 */
 export async function register(req, res) {
-            res.json("registeer route")
+    try{
+            const {username, password, profile , email} = req.body;
+
+
+            // check the existing user
+            const existUsername = new Promise((resolve, reject) =>{
+                UserModel.findOne({ username }, function(err, user) {
+                    if(err) reject(new Error(err));
+                    if(user) reject({error:"please use unique username"});
+
+                    resolve();
+                })
+            })
+                // check for existing email
+                const existEmail = new Promise((resolve, reject) =>{
+                    UserModel.findOne({ email }, function(err, email) {
+                        if(err) reject(new Error(err));
+                        if(email) reject({error:"please use unique Email"});
+    
+                        resolve();
+                    })
+                })
+
+                Promise.all([existUsername, existEmail])
+                    .then(()=>{
+                        if(password){ 
+                            bcrypt.hash(password, 10)
+                                .then(hashedPassword =>{
+
+                                    const user = new UserModel({
+                                        username,
+                                        password: hashedPassword,
+                                        profile,
+                                        email
+                                    });
+
+                                    user.save()
+                                      .then(result => res.status(201).send({msg : "User Register Success"}))
+                                      .catch(error => res.status(500).send({error}))
+
+                                }).catch(error =>{
+                                    return res.status(500).send({
+                                        error: "enable to hashed password"
+                                    })
+                                })
+                        }
+                    }).catch(error =>{
+                        return res.status(500).send({
+                                error: "enable to hashed password"
+                        })
+                    })
+
+    } catch (error) {
+            return res.status(500).send(error);
+    }
 }
 
 

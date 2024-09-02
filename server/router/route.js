@@ -1,22 +1,24 @@
 import { Router } from "express";
-
 const router = Router();
 
+// import all controllerrs 
+import * as controller from "../controllers/appController.js"; 
+
 // POST method 
-router.route('/register').post((req, res) =>  res.json('Register route')); // register user
-router.route('/registerMail').post(); // send the mail
-router.route('/authenticate').post(); // authenticate user
-router.route('/login').post(); // login in app 
+router.route('/register').post(controller.register); // register user
+// router.route('/registerMail').post(); // send the mail
+router.route('/authenticate').post((req,res)=> res.end()); // authenticate user
+router.route('/login').post(controller.login); // login in app 
 
 // GET method 
-router.route('/user/:username').get(); // user wit username
-router.route('/generatteOTP').get(); // generate random OTP 
-router.route('/verifyOTP').get(); // verify generated OTP
-router.route('/createReseetSession').get(); // reset all tthe variables
+router.route('/user/:username').get(controller.getUser); // user wit username
+router.route('/generateOTP').get(controller.generateOTP); // generate random OTP 
+router.route('/verifyOTP').get(controller.verifyOTP); // verify generated OTP
+router.route('/createReseetSession').get(controller.createResetSession); // reset all tthe variables
 
 // PUT method
-router.route('/updateuser').put(); // is use to update the user profile
-router.route('/resetPassword').put(); // use to reset password
+router.route('/updateuser').put(controller.updateUser); // is use to update the user profile
+router.route('/resetPassword').put(controller.resetPassword); // use to reset password
 
 
 
