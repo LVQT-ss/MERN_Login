@@ -1,5 +1,7 @@
 import UserModel from "../model/User.model.js";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import ENV from '../config.js'
 /** POST: http://localhost:8080/api/register 
  * @param : {
   "username" : "example123",
@@ -12,63 +14,67 @@ import bcrypt from "bcrypt";
   "profile": ""
 }
 */
-export async function register(req, res) {
-    try{
-            const {username, password, profile , email} = req.body;
+export async function register(req,res){
 
+    try {
+        const { username, password, profile, email } = req.body;        
 
-            // check the existing user
-            const existUsername = new Promise((resolve, reject) =>{
-                UserModel.findOne({ username }, function(err, user) {
-                    if(err) reject(new Error(err));
-                    if(user) reject({error:"please use unique username"});
+        // check the existing user
+        const existUsername = new Promise((resolve, reject) => {
+            UserModel.findOne({ username }, function(err, user){
+                if(err) reject(new Error(err))
+                if(user) reject({ error : "Please use unique username"});
 
-                    resolve();
-                })
+                resolve();
             })
-                // check for existing email
-                const existEmail = new Promise((resolve, reject) =>{
-                    UserModel.findOne({ email }, function(err, email) {
-                        if(err) reject(new Error(err));
-                        if(email) reject({error:"please use unique Email"});
-    
-                        resolve();
-                    })
-                })
+        });
 
-                Promise.all([existUsername, existEmail])
-                    .then(()=>{
-                        if(password){ 
-                            bcrypt.hash(password, 10)
-                                .then(hashedPassword =>{
+        // check for existing email
+        const existEmail = new Promise((resolve, reject) => {
+            UserModel.findOne({ email }, function(err, email){
+                if(err) reject(new Error(err))
+                if(email) reject({ error : "Please use unique Email"});
 
-                                    const user = new UserModel({
-                                        username,
-                                        password: hashedPassword,
-                                        profile,
-                                        email
-                                    });
+                resolve();
+            })
+        });
 
-                                    user.save()
-                                      .then(result => res.status(201).send({msg : "User Register Success"}))
-                                      .catch(error => res.status(500).send({error}))
 
-                                }).catch(error =>{
-                                    return res.status(500).send({
-                                        error: "enable to hashed password"
-                                    })
-                                })
-                        }
-                    }).catch(error =>{
-                        return res.status(500).send({
-                                error: "enable to hashed password"
+        Promise.all([existUsername, existEmail])
+            .then(() => {
+                if(password){
+                    bcrypt.hash(password, 10)
+                        .then( hashedPassword => {
+                            
+                            const user = new UserModel({
+                                username,
+                                password: hashedPassword,
+                                profile: profile || '',
+                                email
+                            });
+
+                            // return save result as a response
+                            user.save()
+                                .then(result => res.status(201).send({ msg: "User Register Successfully"}))
+                                .catch(error => res.status(500).send({error}))
+
+                        }).catch(error => {
+                            return res.status(500).send({
+                                error : "Enable to hashed password"
+                            })
                         })
-                    })
+                }
+            }).catch(error => {
+                return res.status(500).send({ error })
+            })
+
 
     } catch (error) {
-            return res.status(500).send(error);
+        return res.status(500).send(error);
     }
+
 }
+
 
 
 /** POST: http://localhost:8080/api/login 
@@ -78,7 +84,41 @@ export async function register(req, res) {
 }
 */
 export async function login(req, res) {
-    res.json("login route")
+const { username, password } = req.body;
+
+    try {
+        
+        UserModel.findOne({ username })
+            .then(user => {
+                bcrypt.compare(password, user.password)
+                    .then(passwordCheck => {
+
+                        if(!passwordCheck) return res.status(400).send({ error: "Don't have Password"});
+
+                        // create jwt token
+                        const token = jwt.sign({ 
+                                        userId: user._id,
+                                        username : user.username
+                                    }, ENV.JWT_SECRET , { expiresIn : "24h"});
+
+                        return res.status(200).send({
+                            msg: "Login Successful...!",
+                            username: user.username,
+                            token
+                        });                                    
+
+                    })
+                    .catch(error =>{
+                        return res.status(400).send({ error: "Password does not Match"})
+                    })
+            })
+            .catch( error => {
+                return res.status(404).send({ error : "Username not Found"});
+            })
+
+    } catch (error) {
+        return res.status(500).send({ error});
+    }
 }
 
 
