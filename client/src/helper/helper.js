@@ -1,5 +1,7 @@
 import axios from 'axios';
+import jwt_decode from 'jwt-decode';
 
+axios.defaults.baseURL = process.env.REACT_APP_SERVER_DOMAIN ; // Fallback to localhost:8080 if the environment variable is missing
 
 
 /** Make API Requests */
