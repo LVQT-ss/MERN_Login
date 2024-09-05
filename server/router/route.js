@@ -18,7 +18,7 @@ router.route('/login').post(controller.verifyUser,controller.login); // login in
 router.route('/user/:username').get(controller.getUser); // user wit username
 router.route('/generateOTP').get(controller.verifyUser,localVariables,controller.generateOTP); // generate random OTP 
 router.route('/verifyOTP').get(controller.verifyUser,controller.verifyOTP); // verify generated OTP
-router.route('/createReseetSession').get(controller.createResetSession); // reset all tthe variables
+router.route('/createResetSession').get(controller.createResetSession); // reset all tthe variables
 
 // PUT method
 router.route('/updateuser').put(Auth,controller.updateUser); // is use to update the user profile

@@ -42,9 +42,9 @@ export async function registerUser(credentials){
         let { username, email } = credentials;
 
         /** send email */
-        // if(status === 201){
-        //     await axios.post('/api/registerMail', { username, userEmail : email, text : msg})
-        // }
+        if(status === 201){
+            await axios.post('/api/registerMail', { username, userEmail : email, text : msg})
+        }
 
         return Promise.resolve(msg)
     } catch (error) {
@@ -108,6 +108,7 @@ export async function verifyOTP({ username, code }){
 export async function resetPassword({ username, password }){
     try {
         const { data, status } = await axios.put('/api/resetPassword', { username, password });
+        console.log(data);
         return Promise.resolve({ data, status})
     } catch (error) {
         return Promise.reject({ error })
